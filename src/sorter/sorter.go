@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 )
-import "algorithms/bubblesort"
-import "algorithms/qsort"
+import "sorter/algorithms/bubblesort"
+import "sorter/algorithms/qsort"
 
 var infile *string = flag.String("i", "infile", "File contains values for sorting")
 var outfile *string = flag.String("o", "outfile", "File to receive sorted values")
