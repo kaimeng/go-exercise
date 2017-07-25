@@ -35,7 +35,7 @@ func readValues(infile string) (values []int, err error) {
 			break
 		}
 		if isPrefix {
-			fmt.Println("A too line line, seems unexpected.")
+			fmt.Println("A too long line, seems unexpected.")
 			return
 		}
 		str := string(line)

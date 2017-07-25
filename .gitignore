@@ -3,3 +3,5 @@
 *.exe
 sorted.dat
 .idea
+bin
+pkg
