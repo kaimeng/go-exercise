@@ -9,6 +9,8 @@ import (
 	"html/template"
 	"path"
 	"strings"
+	"runtime/debug"
+	"fmt"
 )
 
 const (
@@ -19,6 +21,7 @@ const (
 var templates = make(map[string]*template.Template)
 
 func init() {
+	fmt.Println(os.Getwd())
 	fileInfoArr, err := ioutil.ReadDir(TEMPLATE_DIR)
 	if err != nil {
 		panic(err)
@@ -101,10 +104,28 @@ func check(err error) {
 	}
 }
 
+func safeHandler(fn http.HandlerFunc) http.HandlerFunc  {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if e, ok := recover().(error); ok {
+				http.Error(w, e.Error(), http.StatusInternalServerError)
+				// 或者输出自定义的 50x 错误页面
+				// w.WriteHeader(http.StatusInternalServerError)
+				// renderHtml(w, "error", e)
+				// logging
+				log.Println("WARN: panic in %v - %v", fn, e)
+				log.Println(string(debug.Stack()))
+			}
+		}()
+		fn(w, r)
+	}
+
+}
+
 func main() {
-	http.HandleFunc("/", listHandler)
-	http.HandleFunc("/view", viewHandler)
-	http.HandleFunc("/upload", uploadHandler)
+	http.HandleFunc("/", safeHandler(listHandler))
+	http.HandleFunc("/view", safeHandler(viewHandler))
+	http.HandleFunc("/upload", safeHandler(uploadHandler))
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
