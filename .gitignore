@@ -1,7 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
 
 *.exe
-sorted.dat
 .idea
-bin
 pkg
