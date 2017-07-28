@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	ListDir = 0x0001
 	UPLOAD_DIR   = "src/photoweb/uploads"
 	TEMPLATE_DIR = "src/photoweb/views"
 )
@@ -104,7 +105,7 @@ func check(err error) {
 	}
 }
 
-func safeHandler(fn http.HandlerFunc) http.HandlerFunc  {
+func safeHandler(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if e, ok := recover().(error); ok {
@@ -119,10 +120,24 @@ func safeHandler(fn http.HandlerFunc) http.HandlerFunc  {
 		}()
 		fn(w, r)
 	}
+}
 
+func staticDirHandler(mux *http.ServeMux, prefix string, staticDir string, flags int) {
+	mux.HandleFunc(prefix, func(w http.ResponseWriter, r *http.Request) {
+		file := staticDir + r.URL.Path[len(prefix)-1:]
+		if (flags & ListDir) == 0 {
+			if exists := isExists(file); !exists {
+				http.NotFound(w, r)
+				return
+			}
+		}
+		http.ServeFile(w, r, file)
+	})
 }
 
 func main() {
+	mux := http.NewServeMux()
+	staticDirHandler(mux, "/assets/", "src/photoweb/static", 0)
 	http.HandleFunc("/", safeHandler(listHandler))
 	http.HandleFunc("/view", safeHandler(viewHandler))
 	http.HandleFunc("/upload", safeHandler(uploadHandler))
